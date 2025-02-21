@@ -337,29 +337,50 @@
         </div>
     </div>
 
+    <!-- Подключение TON Connect SDK -->
     <script src="https://unpkg.com/@tonconnect/sdk/dist/tonconnect-sdk.min.js"></script>
     <script>
         // Инициализация TON Connect
         const connector = new TonConnectSDK.TonConnect({
-            manifestUrl: 'https://your-username.github.io/your-repo/tonconnect-manifest.json'
+            manifestUrl: 'https://your-username.github.io/your-repo/tonconnect-manifest.json' // Убедитесь, что URL правильный
         });
 
-        // Подключение кошелька
+        // Обработчик кнопки подключения кошелька
         document.getElementById('connectWalletButton').addEventListener('click', async () => {
             try {
-                const walletsList = await connector.getWallets();
-                const wallet = walletsList[0]; // Выберите кошелек по умолчанию или предложите выбор
+                const walletsList = await connector.getWallets(); // Получаем список доступных кошельков
+                if (walletsList.length === 0) {
+                    alert('Нет доступных кошельков. Установите TON Wallet.');
+                    return;
+                }
 
-                await connector.connect(wallet);
-                console.log('Wallet connected');
-                alert('Кошелек успешно подключен!');
+                // Если доступен только один кошелек — подключаем сразу
+                let selectedWallet = walletsList[0];
+
+                // Если кошельков несколько — показываем выбор
+                if (walletsList.length > 1) {
+                    const walletNames = walletsList.map(w => w.name).join('\n');
+                    const choice = prompt(`Выберите кошелек:\n${walletNames}`);
+                    selectedWallet = walletsList.find(w => w.name.toLowerCase() === choice.toLowerCase()) || walletsList[0];
+                }
+
+                await connector.connect(selectedWallet);
+                console.log('Wallet connected:', selectedWallet.name);
+                alert(`Кошелек "${selectedWallet.name}" успешно подключен!`);
             } catch (error) {
-                console.error('Connection error:', error);
-                alert('Ошибка подключения кошелька: ' + error.message);
+                console.error('Ошибка подключения кошелька:', error);
+                alert('Ошибка подключения: ' + error.message);
             }
         });
 
-        // Ваши остальные скрипты
+        // Функции для кнопки "Settings"
+        document.querySelector('.settings-button').addEventListener('click', () => {
+            document.querySelector('.settings-panel').style.display = 'block';
+        });
+
+        function closeSettingsPanel() {
+            document.querySelector('.settings-panel').style.display = 'none';
+        }
     </script>
 </body>
 </html>
